@@ -9,6 +9,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/env.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+// ❗ A laisser 1 seule publication, puis supprimer
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+  if (window.caches) { caches.keys().then(keys => keys.forEach(k => caches.delete(k))); }
+}
+</script>
+
   <style>
     :root{ --cm:#059669; --cm2:#10b981; }
     .glass { backdrop-filter: blur(8px); background: rgba(255,255,255,0.8); }
