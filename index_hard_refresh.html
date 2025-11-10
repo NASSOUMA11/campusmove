@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CampusMove — v20251110-195919</title>
+  <meta name="theme-color" content="#059669"/>
+  <link rel="manifest" href="/manifest.webmanifest"/>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+    }
+    if (window.caches) { caches.keys().then(keys => keys.forEach(k => caches.delete(k))); }
+  </script>
+  <script src="/env.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#ecfdf5; margin:0; }
+    header { position:sticky; top:0; background:#fff8; backdrop-filter: blur(8px); border-bottom:1px solid #e5e7eb; padding:10px 16px; }
+    .container { max-width:900px; margin:0 auto; padding:16px; }
+    .card { background:white; border:1px solid #e5e7eb; border-radius:14px; padding:14px; margin:10px 0; }
+    .btn { background:#059669; color:#fff; padding:8px 12px; border-radius:10px; border:none; font-weight:700; }
+    .muted { color:#6b7280; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container"><b>CampusMove</b> — <span class="muted">build v20251110-195919</span></div>
+  </header>
+  <main class="container">
+    <div id="status" class="card">Vérifications en cours…</div>
+    <div id="offers"></div>
+  </main>
+
+  <script type="module">
+    const el = document.getElementById('status');
+    function line(t) { el.innerHTML += '<br/>' + t; }
+
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+      el.innerHTML = "❌ env.js introuvable ou vide.";
+      throw new Error('Missing env');
+    } else {
+      el.innerHTML = "✅ env.js chargé (" + window.SUPABASE_URL + ")";
+    }
+
+    const { createClient } = supabase;
+    const supa = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    try {
+      const { data, error } = await supa.from('offers').select('*').limit(5);
+      if (error) throw error;
+      line("✅ Connexion Supabase OK (" + (data?.length||0) + " offres)");
+      const box = document.getElementById('offers');
+      box.innerHTML = '<h2>Offres actuelles</h2>';
+      if (!data || !data.length) {
+        box.innerHTML += '<div class="card">Aucune offre en base.</div>';
+      } else {
+        data.forEach(o => {
+          box.innerHTML += `<div class="card"><b>${o.driver}</b> · ${o.time} — ${o.from} → ${o.to} · ${o.seats} place(s)</div>`;
+        });
+      }
+    } catch(e) {
+      line("❌ Erreur Supabase : " + e.message);
+      console.error(e);
+    }
+
+    if ('serviceWorker' in navigator) {
+      try { await navigator.serviceWorker.register('/sw.js'); line("🔄 Service worker ré-enregistré."); }
+      catch(e){ line("⚠️ Impossible d'enregistrer le SW : " + e.message); }
+    }
+  </script>
+</body>
+</html>

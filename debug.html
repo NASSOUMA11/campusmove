@@ -1,0 +1,31 @@
+<!doctype html>
+<html><head><meta charset="utf-8"/><title>CampusMove Debug v20251110-195919</title>
+<script src="/env.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>body{font-family:system-ui;background:#f8fafc;padding:20px}.box{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin:10px 0}</style>
+</head><body>
+<h1>Debug CampusMove <small style="color:#64748b">v20251110-195919</small></h1>
+<div id="out" class="box">Tests…</div>
+<script type="module">
+const out = document.getElementById('out');
+function log(t){ out.innerHTML += '<br/>'+t; }
+log('env URL='+(window.SUPABASE_URL||'N/A'));
+const okEnv = !!(window.SUPABASE_URL && window.SUPABASE_ANON_KEY);
+log(okEnv?'✅ env.js OK':'❌ env.js manquant');
+try {
+  const { createClient } = supabase;
+  const s = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  const { data, error } = await s.from('offers').select('*').limit(5);
+  if(error) throw error;
+  log('✅ Supabase OK, rows='+ (data?.length||0));
+} catch(e) {
+  log('❌ Supabase error: '+ e.message);
+  console.error(e);
+}
+if('serviceWorker' in navigator){
+  const regs = await navigator.serviceWorker.getRegistrations();
+  log('SW registrations: '+ regs.length);
+  regs.forEach(r => log(' • '+(r.active?.scriptURL||'no active')));
+}
+</script>
+</body></html>
